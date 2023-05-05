@@ -98,10 +98,31 @@ describe Dip::Commands::Compose do
       it { expected_exec("docker-compose", ["--file", file1, "--file", file3, "run"]) }
     end
 
-    context "and a file name contains env var", env: true do
+    context "and a file name contains os env var", env: true do
       let(:config) { {compose: {files: %w[file1-${DIP_OS}.yml]}} }
       let(:file) { fixture_path("empty", "file1-darwin.yml") }
       let(:env) { {"DIP_OS" => "darwin"} }
+
+      before do
+        allow_any_instance_of(Pathname).to receive(:exist?) do |obj|
+          case obj.to_s
+          when file
+            true
+          else
+            File.exist?(obj.to_s)
+          end
+        end
+
+        cli.start "compose run".shellsplit
+      end
+
+      it { expected_exec("docker-compose", ["--file", file, "run"]) }
+    end
+
+    context "and a file name contains cpu env var", env: true do
+      let(:config) { {compose: {files: %w[file1-${DIP_CPU}.yml]}} }
+      let(:file) { fixture_path("empty", "file1-arm64.yml") }
+      let(:env) { {"DIP_CPU" => "arm64"} }
 
       before do
         allow_any_instance_of(Pathname).to receive(:exist?) do |obj|

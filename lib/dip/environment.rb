@@ -5,7 +5,7 @@ require "pathname"
 module Dip
   class Environment
     VAR_REGEX = /\$\{?(?<var_name>[a-zA-Z_][a-zA-Z0-9_]*)\}?/.freeze
-    SPECIAL_VARS = %i[os work_dir_rel_path].freeze
+    SPECIAL_VARS = %i[cpu os work_dir_rel_path].freeze
 
     attr_reader :vars
 
@@ -54,6 +54,10 @@ module Dip
       @special_vars ||= SPECIAL_VARS.each_with_object({}) do |key, memo|
         memo["DIP_#{key.to_s.upcase}"] = "find_#{key}"
       end
+    end
+
+    def find_cpu
+      @dip_cpu ||= Gem::Platform.local.cpu
     end
 
     def find_os
